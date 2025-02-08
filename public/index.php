@@ -48,10 +48,25 @@ $app->get('/users/{id}', function ($request, $response, $args) {
 */
 $app->get('/users/new', function ($request, $response) {
     $params = [
-        'user' => ['name' => '', 'email' => '', 'password' => '', 'passwordConfirmation' => '', 'city' => ''],
+        'user' => ['id' => '', 'name' => '', 'email' => '', 'password' => '', 'passwordConfirmation' => '', 'city' => ''],
         'errors' => []
     ];
     return $this->get('renderer')->render($response, "users/new.phtml", $params);
+});
+
+$app->post('/users', function ($request, $response) {
+    $user = $request->getParsedBodyParam('user');
+    $user['id'] = random_int(1, 150000);
+    $params = [
+        'user' => $user,
+        'errors' => $errors
+    ];
+    $readedUsers = json_decode(file_get_contents('tt.dat')) ?? [];
+    array_push($readedUsers, $user);
+    $addedUsers = json_encode($readedUsers);
+    file_put_contents('tt.dat', $addedUsers);
+    return $response->withRedirect('/users', 302);
+    //return $this->get('renderer')->render($response, "users/new.phtml", $params);
 });
 
 
