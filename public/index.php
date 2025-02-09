@@ -1,5 +1,7 @@
 <?php
 
+//php -S localhost:8080
+
 require __DIR__ . '/../vendor/autoload.php';
 
 use Slim\Factory\AppFactory;
@@ -15,31 +17,31 @@ $container->set('renderer', function () {
 });
 $app = AppFactory::createFromContainer($container);
 $app->addErrorMiddleware(true, true, true);
-
+$router = $app->getRouteCollector()->getRouteParser();
 
 $app->get('/', function ($request, $response) {
     $response->getBody()->write('Welcome to Slim!');
     return $response;
-});
+})->setName('root');
 
 $app->get('/courses/{id}', function ($request, $response, array $args) {
     $id = $args['id'];
     return $response->write("Course id: {$id}");
-});
+})->setName('course');
 
 $app->get('/courses', function ($request, $response) use ($courses) {
     $params = [
         'courses' => $courses
     ];
     return $this->get('renderer')->render($response, 'courses/index.phtml', $params);
-});
+})->setName('courses');
 
 $app->get('/users', function ($request, $response) use ($users) {
     $term = $request->getQueryParam('term');
     $filteredUsers = array_filter($users, fn($user) => str_contains($user, $term));
     $params = ['users' => $filteredUsers, 'term' => $term];
     return $this->get('renderer')->render($response, 'users/index.phtml', $params);
-});
+})->setName('users');
 /*
 $app->get('/users/{id}', function ($request, $response, $args) {
     $params = ['id' => $args['id'], 'nickname' => 'user-' . $args['id']];
@@ -52,9 +54,9 @@ $app->get('/users/new', function ($request, $response) {
         'errors' => []
     ];
     return $this->get('renderer')->render($response, "users/new.phtml", $params);
-});
+})->setName('newuser');
 
-$app->post('/users', function ($request, $response) {
+$app->post('/users', function ($request, $response) use ($router) {
     $user = $request->getParsedBodyParam('user');
     $user['id'] = random_int(1, 150000);
     $params = [
@@ -65,9 +67,7 @@ $app->post('/users', function ($request, $response) {
     array_push($readedUsers, $user);
     $addedUsers = json_encode($readedUsers);
     file_put_contents('tt.dat', $addedUsers);
-    return $response->withRedirect('/users', 302);
-    //return $this->get('renderer')->render($response, "users/new.phtml", $params);
+    return $response->withRedirect($router->urlFor('users'), 302);
 });
-
 
 $app->run();
