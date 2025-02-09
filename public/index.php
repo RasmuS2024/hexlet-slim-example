@@ -42,12 +42,9 @@ $app->get('/users', function ($request, $response) use ($users) {
     $params = ['users' => $filteredUsers, 'term' => $term];
     return $this->get('renderer')->render($response, 'users/index.phtml', $params);
 })->setName('users');
-/*
-$app->get('/users/{id}', function ($request, $response, $args) {
-    $params = ['id' => $args['id'], 'nickname' => 'user-' . $args['id']];
-    return $this->get('renderer')->render($response, 'users/show.phtml', $params);
-});
-*/
+
+
+
 $app->get('/users/new', function ($request, $response) {
     $params = [
         'user' => ['id' => '', 'name' => '', 'email' => '', 'password' => '', 'passwordConfirmation' => '', 'city' => ''],
@@ -58,16 +55,31 @@ $app->get('/users/new', function ($request, $response) {
 
 $app->post('/users', function ($request, $response) use ($router) {
     $user = $request->getParsedBodyParam('user');
-    $user['id'] = random_int(1, 150000);
+    $id = random_int(1, 150000);
     $params = [
         'user' => $user,
         'errors' => $errors
     ];
-    $readedUsers = json_decode(file_get_contents('tt.dat')) ?? [];
-    array_push($readedUsers, $user);
-    $addedUsers = json_encode($readedUsers);
+    $readedUsers = json_decode(file_get_contents('tt.dat'), true) ?? [];
+    array_push($readedUsers, array($id => $user));
+    $addedUsers['usr'] = json_encode($readedUsers);
     file_put_contents('tt.dat', $addedUsers);
     return $response->withRedirect($router->urlFor('users'), 302);
 });
+
+
+$app->get('/users/{id}', function ($request, $response, array $args) use ($router) {
+    $id = $args['id'];
+    $readedUsers = json_decode(file_get_contents('tt.dat'), true)[0] ?? [];
+    if (array_key_exists($id, $readedUsers)) {
+        $user = $readedUsers[$id];
+        $params = ['id' => $id, 'name' => $user['name'], 'email' => $user['email']];
+        return $this->get('renderer')->render($response, 'users/show.phtml', $params);
+    }
+    return $response->withRedirect($router->urlFor('users'), 404);
+});
+
+
+
 
 $app->run();
