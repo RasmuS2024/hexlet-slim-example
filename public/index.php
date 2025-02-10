@@ -7,6 +7,8 @@ require __DIR__ . '/../vendor/autoload.php';
 use Slim\Factory\AppFactory;
 use DI\Container;
 
+session_start();
+
 $users = ['mike', 'mishel', 'adel', 'keks', 'kamila'];
 $courses = ['ЗРЗ', 'PHP', 'Java', 'Python', 'JavaScript'];
 
@@ -15,8 +17,16 @@ $container->set('renderer', function () {
     // Параметром передается базовая директория, в которой будут храниться шаблоны
     return new \Slim\Views\PhpRenderer(__DIR__ . '/../templates');
 });
+$container->set('flash', function () {
+    return new \Slim\Flash\Messages();
+});
+
 $app = AppFactory::createFromContainer($container);
 $app->addErrorMiddleware(true, true, true);
+/*
+AppFactory::setContainer($container);
+$app = AppFactory::create();
+*/
 $router = $app->getRouteCollector()->getRouteParser();
 
 $app->get('/', function ($request, $response) {
@@ -40,6 +50,11 @@ $app->get('/users', function ($request, $response) use ($users) {
     $term = $request->getQueryParam('term');
     $filteredUsers = array_filter($users, fn($user) => str_contains($user, $term));
     $params = ['users' => $filteredUsers, 'term' => $term];
+
+    $messages = $this->get('flash')->getMessages();
+    print_r($messages['success'][0]);
+    $params = ['flash' => $messages];
+
     return $this->get('renderer')->render($response, 'users/index.phtml', $params);
 })->setName('users');
 
@@ -50,6 +65,7 @@ $app->get('/users/new', function ($request, $response) {
         'user' => ['id' => '', 'name' => '', 'email' => '', 'password' => '', 'passwordConfirmation' => '', 'city' => ''],
         'errors' => []
     ];
+    
     return $this->get('renderer')->render($response, "users/new.phtml", $params);
 })->setName('newuser');
 
@@ -64,6 +80,9 @@ $app->post('/users', function ($request, $response) use ($router) {
     array_push($readedUsers, array($id => $user));
     $addedUsers['usr'] = json_encode($readedUsers);
     file_put_contents('tt.dat', $addedUsers);
+
+    $this->get('flash')->addMessage('success', 'User успешно добавлен!');
+
     return $response->withRedirect($router->urlFor('users'), 302);
 });
 
