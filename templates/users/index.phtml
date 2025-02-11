@@ -7,10 +7,12 @@
   <?php foreach ($users as $user): ?>
     <tr>
       <td>
-          <?= $user ?>
+          <?= $user['id'] ?>
+      </td>
+      <td>
+          <a href="/users/<?= $user['id'] ?>"><?= $user['name'] ?></a>
       </td>
     </tr>
   <?php endforeach ?>
 </table>
-
 

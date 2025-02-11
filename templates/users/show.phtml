@@ -1,3 +1,6 @@
-<p>id = <?= htmlspecialchars($id) ?></p>
-<p>name = <?= htmlspecialchars($name) ?></p>
-<p>email = <?= htmlspecialchars($email) ?></p>
+<?php foreach ($user as $key => $value): ?>
+  <div>
+      <?= $key ?>: <?= $value ?>
+  </div>
+<?php endforeach ?>
+

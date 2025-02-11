@@ -9,7 +9,7 @@ use DI\Container;
 
 session_start();
 
-$users = ['mike', 'mishel', 'adel', 'keks', 'kamila'];
+//$users = ['mike', 'mishel', 'adel', 'keks', 'kamila'];
 $courses = ['ЗРЗ', 'PHP', 'Java', 'Python', 'JavaScript'];
 
 $container = new Container();
@@ -46,18 +46,16 @@ $app->get('/courses', function ($request, $response) use ($courses) {
     return $this->get('renderer')->render($response, 'courses/index.phtml', $params);
 })->setName('courses');
 
-$app->get('/users', function ($request, $response) use ($users) {
+$app->get('/users', function ($request, $response) {
     $term = $request->getQueryParam('term');
-    $filteredUsers = array_filter($users, fn($user) => str_contains($user, $term));
-    $params = ['users' => $filteredUsers, 'term' => $term];
+    $users = json_decode(file_get_contents('tt.dat'), true) ?? [];
+    $filteredUsers = array_filter($users, fn($user) => str_contains($user['name'], $term));
 
     $messages = $this->get('flash')->getMessages();
     print_r($messages['success'][0]);
-    $params = ['flash' => $messages];
-
+    $params = ['users' => $filteredUsers, 'term' => $term, 'flash' => $messages];
     return $this->get('renderer')->render($response, 'users/index.phtml', $params);
 })->setName('users');
-
 
 
 $app->get('/users/new', function ($request, $response) {
@@ -65,19 +63,19 @@ $app->get('/users/new', function ($request, $response) {
         'user' => ['id' => '', 'name' => '', 'email' => '', 'password' => '', 'passwordConfirmation' => '', 'city' => ''],
         'errors' => []
     ];
-    
     return $this->get('renderer')->render($response, "users/new.phtml", $params);
 })->setName('newuser');
 
 $app->post('/users', function ($request, $response) use ($router) {
     $user = $request->getParsedBodyParam('user');
     $id = random_int(1, 150000);
-    $params = [
+    /*$params = [
         'user' => $user,
         'errors' => $errors
-    ];
+    ];*/
     $readedUsers = json_decode(file_get_contents('tt.dat'), true) ?? [];
-    array_push($readedUsers, array($id => $user));
+    $user['id'] = $id;
+    array_push($readedUsers, $user);
     $addedUsers['usr'] = json_encode($readedUsers);
     file_put_contents('tt.dat', $addedUsers);
 
@@ -89,11 +87,14 @@ $app->post('/users', function ($request, $response) use ($router) {
 
 $app->get('/users/{id}', function ($request, $response, array $args) use ($router) {
     $id = $args['id'];
-    $readedUsers = json_decode(file_get_contents('tt.dat'), true)[0] ?? [];
-    if (array_key_exists($id, $readedUsers)) {
-        $user = $readedUsers[$id];
-        $params = ['id' => $id, 'name' => $user['name'], 'email' => $user['email']];
-        return $this->get('renderer')->render($response, 'users/show.phtml', $params);
+    $readedUsers = json_decode(file_get_contents('tt.dat'), true) ?? [];
+    //var_dump($readedUsers);
+    foreach ($readedUsers as $user) {
+        if ($user['id'] == $id) {
+            $params = ['user' => $user];
+            //var_dump($params);
+            return $this->get('renderer')->render($response, 'users/show.phtml', $params);
+        }
     }
     return $response->withRedirect($router->urlFor('users'), 404);
 });
