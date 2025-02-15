@@ -6,5 +6,11 @@
         "slim/php-view": "^3.4",
         "php-di/php-di": "^7.0",
         "slim/flash": "^0.4.0"
+    },
+    "autoload": {
+        "files": [
+            "src/Validator.php",
+            "src/ValidatorInterface.php"
+        ]
     }
 }

@@ -5,7 +5,7 @@
   <div>
     <label>
         Имя
-      <input type="text" name="user[name]" value="<?= htmlspecialchars($user['name']) ?>">
+      <input type="text" required name="user[name]" value="<?= htmlspecialchars($user['name']) ?>">
     </label>
     <?php if (isset($errors['name'])): ?>
       <div><?= $errors['name'] ?></div>
