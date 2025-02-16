@@ -1,3 +1,11 @@
+<?php
+if (isset($flash)) {
+  if (array_key_exists('success', $flash)) {
+    echo $flash['success'][0].'<br>';
+  }
+}
+?>
+
 <form action="/users" method="get">
   <input type="search" name="term" value="<?= htmlspecialchars($term ?? '')?>" />
   <input type="submit" value="Search" />
@@ -10,9 +18,13 @@
           <?= $user['id'] ?>
       </td>
       <td>
-          <a href="/users/<?= $user['id'] ?>"><?= $user['name'] ?></a>
+          <a href="/users/<?= $user['id'] ?>/edit"><?= $user['name'] ?></a>
       </td>
     </tr>
   <?php endforeach ?>
 </table>
 
+<hr>
+<form action="/exit" method="get">
+  <input type="submit" value="Выход" />
+</form>

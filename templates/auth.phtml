@@ -1,0 +1,13 @@
+<?php
+if (isset($flash)) {
+  if (array_key_exists('success', $flash)) {
+    echo $flash['success'][0].'<br>';
+  }
+}
+?>
+
+<form action="/auth" method="get">
+  <input type="email" name="email" value="" />
+  <input type="submit" value="Вход" />
+</form>
+<hr>

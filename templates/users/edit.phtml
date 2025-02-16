@@ -1,3 +1,11 @@
+<?php
+if (isset($flash)) {
+  if (array_key_exists('success', $flash)) {
+    echo $flash['success'][0].'<br>';
+  }
+}
+?>
+
 <form action="/users/<?= htmlspecialchars($user['id']) ?>" method="post">
     <input type="hidden" name="_METHOD" value="PATCH">
     <div>
@@ -9,5 +17,19 @@
           <div><?= $errors['name'] ?></div>
       <?php endif ?>
     </div>
-    <input type="submit" value="Update">
+    <input type="submit" value="Сохранить">
+</form>
+<hr>
+<form action="/users/<?= htmlspecialchars($user['id']) ?>" method="post">
+    <input type="hidden" name="_METHOD" value="DELETE">
+    <div>
+      <label>
+          Имя *
+          <input type="text" name="user[name]" value="<?= htmlspecialchars($user['name'] ?? ''); ?>">
+      </label>
+      <?php if (isset($errors['name'])): ?>
+          <div><?= $errors['name'] ?></div>
+      <?php endif ?>
+    </div>
+    <input type="submit" value="Удалить">
 </form>
