@@ -1,0 +1,24 @@
+<h1> New Car </h1>
+<hr>
+
+<form action="/cars" method="post">
+  <div>
+    <label>
+        Марка
+      <input type="text" required name="car[make]" value="<?= htmlspecialchars($car->GetMake()) ?>">
+    </label>
+    <?php if (isset($errors['name'])): ?>
+      <div><?= $errors['name'] ?></div>
+    <?php endif ?>
+  </div>
+  <div>
+    <label>
+        Модель
+      <input type="text" required name="car[model]" value="<?= htmlspecialchars($car->GetModel()) ?>">
+    </label>
+    <?php if (isset($errors['email'])): ?>
+      <div><?= $errors['email'] ?></div>
+    <?php endif ?>
+  </div>
+  <input type="submit" value="Submit">
+</form>

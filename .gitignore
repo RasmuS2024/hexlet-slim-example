@@ -1,3 +1,5 @@
 /vendor/
 /public/tt.dat
 /public/database.sqlite
+/public/index.bak
+/public/indexc.php
