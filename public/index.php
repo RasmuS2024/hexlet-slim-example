@@ -8,6 +8,9 @@ use Slim\Factory\AppFactory;
 use Slim\Middleware\MethodOverrideMiddleware;
 use DI\Container;
 use App\Validator;
+use App\CarRepository;
+use App\Car;
+
 
 session_start();
 $container = new Container();
@@ -19,10 +22,111 @@ $container->set('flash', function () {
     return new \Slim\Flash\Messages();
 });
 
+
+
+$container->set(\PDO::class, function () {
+    //$conn = new \PDO('sqlite:hexlet');
+    $conn = new \PDO('sqlite:database.sqlite');
+    $conn->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
+    return $conn;
+});
+$initFilePath = implode('/', [dirname(__DIR__), 'init.sql']);
+$initSql = file_get_contents($initFilePath);
+$container->get(\PDO::class)->exec($initSql);
+
+$container->set(CarRepository::class, function ($container) {
+    return new CarRepository($container->get(\PDO::class));
+});
+
+
+
+
+
 $app = AppFactory::createFromContainer($container);
 $app->addErrorMiddleware(true, true, true);
 $app->add(MethodOverrideMiddleware::class);
 $router = $app->getRouteCollector()->getRouteParser();
+
+
+
+$app->get('/cars', function ($request, $response) {
+    $carRepository = $this->get(CarRepository::class);
+    $cars = $carRepository->getEntities();
+
+    $messages = $this->get('flash')->getMessages();
+
+    $params = [
+      'cars' => $cars,
+      'flash' => $messages
+    ];
+
+    return $this->get('renderer')->render($response, 'cars/index.phtml', $params);
+})->setName('cars.index');
+
+
+$app->get('/cars/new', function ($request, $response) {
+    $params = [
+        'car' => new Car(),
+        'errors' => []
+    ];
+
+    return $this->get('renderer')->render($response, 'cars/new.phtml', $params);
+})->setName('cars.create');
+
+
+$app->get('/cars/{id}', function ($request, $response, $args) {
+    $carRepository = $this->get(CarRepository::class);
+    $id = $args['id'];
+    $car = $carRepository->find($id);
+
+    if (is_null($car)) {
+        return $response->write('Page not found')->withStatus(404);
+    }
+
+    $messages = $this->get('flash')->getMessages();
+
+    $params = [
+        'car' => $car,
+        'flash' => $messages
+    ];
+
+    return $this->get('renderer')->render($response, 'cars/show.phtml', $params);
+})->setName('cars.show');
+
+
+$app->post('/cars', function ($request, $response) use ($router) {
+    $carRepository = $this->get(CarRepository::class);
+    $carData = $request->getParsedBodyParam('car');
+    //var_dump($carData);
+    //$validator = new CarValidator();
+    //$errors = $validator->validate($carData);
+    $errors=[];
+    if (count($errors) === 0) {
+        $car = Car::fromArray([$carData['make'], $carData['model']]);
+        $carRepository->save($car);
+        $this->get('flash')->addMessage('success', 'Car was added successfully');
+        return $response->withRedirect($router->urlFor('cars.index'));
+    }
+
+    $params = [
+        'car' => $carData,
+        'errors' => $errors
+    ];
+
+    return $this->get('renderer')->render($response->withStatus(422), 'cars/new.phtml', $params);
+})->setName('cars.store');
+
+
+
+
+
+
+
+
+
+
+
+
 
 $app->get('/', function ($request, $response) {
     return $this->get('renderer')->render($response, 'auth.phtml');

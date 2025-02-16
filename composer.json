@@ -10,7 +10,9 @@
     "autoload": {
         "files": [
             "src/Validator.php",
-            "src/ValidatorInterface.php"
+            "src/ValidatorInterface.php",
+            "src/CarRepository.php",
+            "src/Car.php"
         ]
     }
 }
